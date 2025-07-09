@@ -3,10 +3,10 @@ name: automated package push for backend
 on:
   push:
     branches:
-      - master
+      - main
 
 env:
-  IMAGE_NAME: flight-api 
+  IMAGE_NAME: flight-ui
   IMAGE_PATH: mbiti2
 
 jobs:
@@ -29,7 +29,7 @@ jobs:
       - name: Build project
         uses: docker/build-push-action@v4
         with:
-          context: .
+          context: ./frontend
           push: true
           tags: |
             ghcr.io/${{ env.IMAGE_PATH }}/${{ env.IMAGE_NAME }}:latest
