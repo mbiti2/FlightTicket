@@ -37,7 +37,7 @@ public class FlightTicketController {
 
     @GetMapping("/search")
     public List<FlightTicket> searchTickets(
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate bookingDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime bookingDate,
             @RequestParam(required = false) String destination,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime kickoff,
             @RequestParam(required = false) String name) {

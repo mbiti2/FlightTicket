@@ -9,13 +9,13 @@ import java.util.List;
 
 @Repository
 public interface FlightTicketRepository extends JpaRepository<FlightTicket, Long> {
-    List<FlightTicket> findByBookingDate(LocalDate bookingDate);
+    List<FlightTicket> findByBookingDate(LocalDateTime bookingDate);
 
     List<FlightTicket> findByDestination(String destination);
 
     List<FlightTicket> findByKickoff(LocalDateTime kickoff);
 
-    List<FlightTicket> findByBookingDateAndDestinationAndKickoff(LocalDate bookingDate, String destination,
+    List<FlightTicket> findByBookingDateAndDestinationAndKickoff(LocalDateTime bookingDate, String destination,
             LocalDateTime kickoff);
 
     List<FlightTicket> findByName(String name);

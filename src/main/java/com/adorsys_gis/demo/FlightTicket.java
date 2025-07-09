@@ -10,12 +10,13 @@ public class FlightTicket {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private LocalDate bookingDate;
+    private LocalDateTime bookingDate;
     private String destination;
     private LocalDateTime kickoff;
     private String name;
     private String phoneNumber;
     private String email;
+    private String pickupAddress;
 
     // Getters and setters
     public Long getId() {
@@ -26,11 +27,11 @@ public class FlightTicket {
         this.id = id;
     }
 
-    public LocalDate getBookingDate() {
+    public LocalDateTime getBookingDate() {
         return bookingDate;
     }
 
-    public void setBookingDate(LocalDate bookingDate) {
+    public void setBookingDate(LocalDateTime bookingDate) {
         this.bookingDate = bookingDate;
     }
 
@@ -72,5 +73,13 @@ public class FlightTicket {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public String getPickupAddress() {
+        return pickupAddress;
+    }
+
+    public void setPickupAddress(String pickupAddress) {
+        this.pickupAddress = pickupAddress;
     }
 }

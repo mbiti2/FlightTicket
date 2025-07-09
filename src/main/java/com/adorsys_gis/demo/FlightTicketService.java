@@ -33,7 +33,8 @@ public class FlightTicketService {
         return repository.findByName(name);
     }
 
-    public List<FlightTicket> search(LocalDate bookingDate, String destination, LocalDateTime kickoff, String name) {
+    public List<FlightTicket> search(LocalDateTime bookingDate, String destination, LocalDateTime kickoff,
+            String name) {
         if (name != null) {
             return repository.findByName(name);
         } else if (bookingDate != null && destination != null && kickoff != null) {
