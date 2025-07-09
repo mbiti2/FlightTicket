@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: backend
-          image: ghcr.io/nkwenti-severian-ndongtsop/flight-api:latest
+          image: ghcr.io/mbiti2/flight-api:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 8000
