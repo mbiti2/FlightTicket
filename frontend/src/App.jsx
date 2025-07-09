@@ -3,7 +3,7 @@ import './App.css';
 import './index.css';
 import { FaPlaneDeparture, FaPlaneArrival, FaSearch, FaTicketAlt, FaCheckCircle } from 'react-icons/fa';
 
-const API_BASE = 'http://localhost:8080/api';
+const API_BASE = 'http://10.88.20.54:30081/api';
 
 function Navbar({ page, setPage }) {
   return (
