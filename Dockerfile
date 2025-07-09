@@ -14,6 +14,6 @@ RUN apk add --no-cache libc6-compat
 # Copy built JAR from builder stage
 COPY --from=builder /app/build/libs/*.jar app.jar
 
-EXPOSE 8000
+EXPOSE 8080
 
 ENTRYPOINT ["java", "-jar", "app.jar"]
