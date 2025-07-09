@@ -3,6 +3,7 @@ package com.adorsys_gis.demo;
 import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.math.BigDecimal;
 
 @Entity
 public class FlightTicket {
@@ -17,6 +18,7 @@ public class FlightTicket {
     private String phoneNumber;
     private String email;
     private String pickupAddress;
+    private BigDecimal price;
 
     // Getters and setters
     public Long getId() {
@@ -81,5 +83,13 @@ public class FlightTicket {
 
     public void setPickupAddress(String pickupAddress) {
         this.pickupAddress = pickupAddress;
+    }
+
+    public BigDecimal getPrice() {
+        return price;
+    }
+
+    public void setPrice(BigDecimal price) {
+        this.price = price;
     }
 }

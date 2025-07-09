@@ -159,6 +159,90 @@ curl -X DELETE http://localhost:8080/api/tickets/1
 
 ---
 
+## Route Pricing (VIP & Normal)
+
+The API supports route-based pricing for flights, with both normal and VIP prices. This allows users to see ticket prices based on their departure location and destination.
+
+### Entity: RoutePricing
+
+- `kickoffAddress` (String)
+- `destination` (String)
+- `normalPrice` (BigDecimal)
+- `vipPrice` (BigDecimal)
+
+### Endpoints
+
+#### Add a new route price
+
+**POST** `/api/prices`
+
+**Request Body Example:**
+
+```json
+{
+  "kickoffAddress": "Lagos",
+  "destination": "Abuja",
+  "normalPrice": 150.0,
+  "vipPrice": 300.0
+}
+```
+
+**Curl Example:**
+
+```sh
+curl -X POST http://localhost:8080/api/prices \
+  -H "Content-Type: application/json" \
+  -d '{
+    "kickoffAddress": "Lagos",
+    "destination": "Abuja",
+    "normalPrice": 150.00,
+    "vipPrice": 300.00
+  }'
+```
+
+#### Get all route prices
+
+**GET** `/api/prices`
+
+**Curl Example:**
+
+```sh
+curl http://localhost:8080/api/prices
+```
+
+#### Search for a route price
+
+**GET** `/api/prices/search?kickoffAddress=Lagos&destination=Abuja`
+
+**Curl Example:**
+
+```sh
+curl "http://localhost:8080/api/prices/search?kickoffAddress=Lagos&destination=Abuja"
+```
+
+**Response Example (found):**
+
+```json
+{
+  "kickoffAddress": "Lagos",
+  "destination": "Abuja",
+  "normalPrice": 150.0,
+  "vipPrice": 300.0
+}
+```
+
+**Response Example (not found):**
+
+```json
+{
+  "message": "Route not available",
+  "normalPrice": null,
+  "vipPrice": null
+}
+```
+
+---
+
 ## Database Table
 
 The main table is `flight_ticket` with columns:

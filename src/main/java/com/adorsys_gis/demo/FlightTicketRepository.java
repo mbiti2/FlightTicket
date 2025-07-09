@@ -6,6 +6,8 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.math.BigDecimal;
+import org.springframework.data.domain.Sort;
 
 @Repository
 public interface FlightTicketRepository extends JpaRepository<FlightTicket, Long> {
@@ -19,4 +21,8 @@ public interface FlightTicketRepository extends JpaRepository<FlightTicket, Long
             LocalDateTime kickoff);
 
     List<FlightTicket> findByName(String name);
+
+    List<FlightTicket> findByPickupAddress(String pickupAddress);
+
+    List<FlightTicket> findByPrice(BigDecimal price);
 }
