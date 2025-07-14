@@ -446,52 +446,53 @@ function Hello() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
-  const [postLoading, setPostLoading] = useState(false);
   const api = new HelloWorldControllerApi(
     new Configuration({ basePath: BACKEND_BASE_URL })
   );
 
-  // Fetch greeting as a chat message
-  const handleGreet = async (e) => {
+  // Send a chat message (POST) and display both user and server messages
+  const handleSend = async (e) => {
     e.preventDefault();
+    if (!input.trim()) return;
+    const userMsg = { sender: 'user', text: input };
+    setMessages(msgs => [...msgs, userMsg]);
+    setInput('');
     setLoading(true);
-    try {
-      const response = await api.hello(input);
-      setMessages(msgs => [...msgs, { sender: 'server', text: response }]);
-    } catch {
-      setMessages(msgs => [...msgs, { sender: 'server', text: 'Failed to get greeting.' }]);
-    }
-    setLoading(false);
-  };
-
-  // Send a chat message (POST)
-  const handlePost = async (e) => {
-    e.preventDefault();
-    setPostLoading(true);
     try {
       const response = await api.sendGreetings(input);
       setMessages(msgs => [...msgs, { sender: 'server', text: response }]);
     } catch {
-      setMessages(msgs => [...msgs, { sender: 'server', text: 'Failed to send greeting.' }]);
+      setMessages(msgs => [...msgs, { sender: 'server', text: 'Failed to send message.' }]);
     }
-    setPostLoading(false);
+    setLoading(false);
   };
 
   return (
     <div className="page-container">
       <h2>Chatboard</h2>
-      <div className="chatboard">
+      <div className="chatboard" style={{ minHeight: 200, border: '1px solid #eee', padding: 12, marginBottom: 12, background: '#fafbfc', borderRadius: 8, maxHeight: 300, overflowY: 'auto' }}>
         {Array.isArray(messages) && messages.map((msg, idx) => (
-          <div key={idx} className={msg.sender === 'server' ? 'chat-msg server' : 'chat-msg user'}>{msg.text}</div>
+          <div key={idx} className={msg.sender === 'server' ? 'chat-msg server' : 'chat-msg user'} style={{
+            textAlign: msg.sender === 'user' ? 'right' : 'left',
+            margin: '6px 0',
+            color: msg.sender === 'user' ? '#2a7ae2' : '#222',
+            background: msg.sender === 'user' ? '#e6f0fa' : '#f1f1f1',
+            display: 'inline-block',
+            padding: '6px 12px',
+            borderRadius: 12,
+            maxWidth: '80%'
+          }}>{msg.text}</div>
         ))}
       </div>
-      <form className="search-form" onSubmit={handleGreet} style={{ marginBottom: 8 }}>
-        <input placeholder="Say hello..." value={input} onChange={e => setInput(e.target.value)} />
-        <button className="cta" type="submit" disabled={loading}>{loading ? <span className="spinner" /> : 'Greet (GET)'}</button>
-      </form>
-      <form className="search-form" onSubmit={handlePost}>
-        <input placeholder="Send a message..." value={input} onChange={e => setInput(e.target.value)} />
-        <button className="cta" type="submit" disabled={postLoading}>{postLoading ? <span className="spinner" /> : 'Send (POST)'}</button>
+      <form className="search-form" onSubmit={handleSend} style={{ display: 'flex', gap: 8 }}>
+        <input
+          placeholder="Type a message..."
+          value={input}
+          onChange={e => setInput(e.target.value)}
+          disabled={loading}
+          style={{ flex: 1 }}
+        />
+        <button className="cta" type="submit" disabled={loading || !input.trim()}>{loading ? <span className="spinner" /> : 'Send'}</button>
       </form>
     </div>
   );
