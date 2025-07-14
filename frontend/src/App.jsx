@@ -36,8 +36,9 @@ function Home() {
   const [bookingError, setBookingError] = useState('');
   const [form, setForm] = useState({ name: '', email: '', phone: '' });
 
+  // Update Home fetches to use /api/prices and /api/prices/search
   useEffect(() => {
-    fetch(`${BACKEND_BASE_URL}/prices`)
+    fetch(`${BACKEND_BASE_URL}/api/prices`)
       .then(res => res.json())
       .then(data => setRoutes(data))
       .catch(() => setError('Failed to load routes.'));
@@ -50,7 +51,7 @@ function Home() {
     if (kickoff && destination) {
       setLoading(true);
       setError('');
-      fetch(`${BACKEND_BASE_URL}/prices/search?kickoffAddress=${encodeURIComponent(kickoff)}&destination=${encodeURIComponent(destination)}`)
+      fetch(`${BACKEND_BASE_URL}/api/prices/search?kickoffAddress=${encodeURIComponent(kickoff)}&destination=${encodeURIComponent(destination)}`)
         .then(res => res.json())
         .then(data => {
           setPrice(data);
@@ -82,7 +83,7 @@ function Home() {
     setBookingSuccess('');
     setBookingError('');
     try {
-      const res = await fetch(`${BACKEND_BASE_URL}/tickets`, {
+      const res = await fetch(`${BACKEND_BASE_URL}/api/tickets`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -270,7 +271,7 @@ function Tickets() {
                 <td>{t.id}</td>
                 <td>{t.name}</td>
                 <td>{t.destination}</td>
-                <td>{t.kickoff}</td>
+                <td>{t.kickoff ? new Date(t.kickoff).toLocaleString() : '--'}</td>
                 <td>{t.pickupAddress}</td>
                 <td>{t.price ? `₦${t.price}` : '--'}</td>
                 <td>
@@ -302,9 +303,10 @@ function Tickets() {
                 <div><b>Email:</b> {t.email ?? '--'}</div>
                 <div><b>Phone:</b> {t.phoneNumber ?? '--'}</div>
                 <div><b>Destination:</b> {t.destination ?? '--'}</div>
-                <div><b>Kickoff:</b> {t.kickoff ?? '--'}</div>
+                <div><b>Kickoff:</b> {t.kickoff ? new Date(t.kickoff).toLocaleString() : '--'}</div>
                 <div><b>Pickup Address:</b> {t.pickupAddress ?? '--'}</div>
                 <div><b>Price:</b> {t.price ? `₦${t.price}` : '--'}</div>
+                <div><b>Booking Date:</b> {t.bookingDate ? new Date(t.bookingDate).toLocaleString() : '--'}</div>
               </div>
             );
           })()}
