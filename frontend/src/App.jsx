@@ -2,9 +2,10 @@ import { useEffect, useState } from 'react';
 import './App.css';
 import './index.css';
 import { FaPlaneDeparture, FaPlaneArrival, FaSearch, FaTicketAlt, FaCheckCircle } from 'react-icons/fa';
-import { FlightTicketControllerApi, Configuration } from './api/apis/FlightTicketControllerApi';
-import { RoutePricingControllerApi, Configuration as RoutePricingConfig } from './api/apis/RoutePricingControllerApi';
-import { HelloWorldControllerApi, Configuration as HelloConfig } from './api/apis/HelloWorldControllerApi';
+import { FlightTicketControllerApi } from './api/apis/FlightTicketControllerApi';
+import { RoutePricingControllerApi } from './api/apis/RoutePricingControllerApi';
+import { HelloWorldControllerApi } from './api/apis/HelloWorldControllerApi';
+import { Configuration } from './api/runtime';
 
 const BACKEND_BASE_URL = 'http://10.88.20.54:30081';
 
@@ -328,7 +329,7 @@ function Prices() {
   const [searchMessage, setSearchMessage] = useState('');
 
   const api = new RoutePricingControllerApi(
-    new RoutePricingConfig({ basePath: BACKEND_BASE_URL })
+    new Configuration({ basePath: BACKEND_BASE_URL })
   );
 
   const fetchPrices = () => {
@@ -445,7 +446,7 @@ function Hello() {
   const [loading, setLoading] = useState(false);
   const [postLoading, setPostLoading] = useState(false);
   const api = new HelloWorldControllerApi(
-    new HelloConfig({ basePath: BACKEND_BASE_URL })
+    new Configuration({ basePath: BACKEND_BASE_URL })
   );
 
   // Fetch greeting as a chat message
