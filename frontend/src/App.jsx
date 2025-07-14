@@ -43,8 +43,8 @@ function Home() {
       .catch(() => setError('Failed to load routes.'));
   }, []);
 
-  const kickoffOptions = [...new Set(routes.map(r => r.kickoffAddress))];
-  const destinationOptions = [...new Set(routes.map(r => r.destination))];
+  const kickoffOptions = Array.isArray(routes) ? [...new Set(routes.map(r => r.kickoffAddress))] : [];
+  const destinationOptions = Array.isArray(routes) ? [...new Set(routes.map(r => r.destination))] : [];
 
   useEffect(() => {
     if (kickoff && destination) {
@@ -125,7 +125,7 @@ function Home() {
               <span>From</span>
               <select id="kickoff" value={kickoff} onChange={e => setKickoff(e.target.value)} aria-label="Select kickoff address">
                 <option value="">Select kickoff</option>
-                {kickoffOptions.map(opt => (
+                {Array.isArray(kickoffOptions) && kickoffOptions.map(opt => (
                   <option key={opt} value={opt}>{opt}</option>
                 ))}
               </select>
@@ -134,7 +134,7 @@ function Home() {
               <span>To</span>
               <select id="destination" value={destination} onChange={e => setDestination(e.target.value)} aria-label="Select destination">
                 <option value="">Select destination</option>
-                {destinationOptions.map(opt => (
+                {Array.isArray(destinationOptions) && destinationOptions.map(opt => (
                   <option key={opt} value={opt}>{opt}</option>
                 ))}
               </select>
@@ -265,7 +265,7 @@ function Tickets() {
             </tr>
           </thead>
           <tbody>
-            {tickets.map(t => (
+            {Array.isArray(tickets) && tickets.map(t => (
               <tr key={t.id} className={selected === t.id ? 'selected-row' : ''}>
                 <td>{t.id}</td>
                 <td>{t.name}</td>
@@ -293,7 +293,7 @@ function Tickets() {
         <div className="modal-overlay"><div className="modal">
           <h3>Ticket Details</h3>
           {(() => {
-            const t = tickets.find(t => t.id === selected);
+            const t = Array.isArray(tickets) ? tickets.find(t => t.id === selected) : null;
             if (!t) return <div style={{ color: '#888' }}>Ticket not found.</div>;
             return (
               <div className="ticket-details-modal">
@@ -402,14 +402,14 @@ function Prices() {
             </tr>
           </thead>
           <tbody>
-            {prices.length === 0 ? (
+            {Array.isArray(prices) && prices.length === 0 ? (
               <tr>
                 <td colSpan={5} style={{ textAlign: 'center', color: '#888', fontStyle: 'italic' }}>
                   No route prices found.
                 </td>
               </tr>
             ) : (
-              prices.map(p => (
+              Array.isArray(prices) && prices.map(p => (
                 <tr key={p.id}>
                   <td>{p.id ?? '--'}</td>
                   <td>{p.kickoffAddress ?? '--'}</td>
@@ -479,7 +479,7 @@ function Hello() {
     <div className="page-container">
       <h2>Chatboard</h2>
       <div className="chatboard">
-        {messages.map((msg, idx) => (
+        {Array.isArray(messages) && messages.map((msg, idx) => (
           <div key={idx} className={msg.sender === 'server' ? 'chat-msg server' : 'chat-msg user'}>{msg.text}</div>
         ))}
       </div>
