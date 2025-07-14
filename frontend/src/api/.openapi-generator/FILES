@@ -1,0 +1,10 @@
+.openapi-generator-ignore
+apis/FlightTicketControllerApi.ts
+apis/HelloWorldControllerApi.ts
+apis/RoutePricingControllerApi.ts
+apis/index.ts
+index.ts
+models/FlightTicket.ts
+models/RoutePricing.ts
+models/index.ts
+runtime.ts

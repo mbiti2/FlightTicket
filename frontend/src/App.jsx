@@ -2,18 +2,21 @@ import { useEffect, useState } from 'react';
 import './App.css';
 import './index.css';
 import { FaPlaneDeparture, FaPlaneArrival, FaSearch, FaTicketAlt, FaCheckCircle } from 'react-icons/fa';
+import { FlightTicketControllerApi, Configuration } from './api/apis/FlightTicketControllerApi';
+import { RoutePricingControllerApi, Configuration as RoutePricingConfig } from './api/apis/RoutePricingControllerApi';
+import { HelloWorldControllerApi, Configuration as HelloConfig } from './api/apis/HelloWorldControllerApi';
 
-const API_BASE = 'http://10.88.20.54:30081/api';
+const BACKEND_BASE_URL = 'http://10.88.20.54:30081';
 
 function Navbar({ page, setPage }) {
   return (
     <nav className="navbar">
       <div className="nav-brand">FlightApp</div>
       <div className="nav-links">
-        <button className={page==='home' ? 'nav-active' : ''} onClick={()=>setPage('home')}>Home</button>
-        <button className={page==='tickets' ? 'nav-active' : ''} onClick={()=>setPage('tickets')}>Tickets</button>
-        <button className={page==='prices' ? 'nav-active' : ''} onClick={()=>setPage('prices')}>Route Prices</button>
-        <button className={page==='hello' ? 'nav-active' : ''} onClick={()=>setPage('hello')}>Hello</button>
+        <button className={page === 'home' ? 'nav-active' : ''} onClick={() => setPage('home')}>Home</button>
+        <button className={page === 'tickets' ? 'nav-active' : ''} onClick={() => setPage('tickets')}>Tickets</button>
+        <button className={page === 'prices' ? 'nav-active' : ''} onClick={() => setPage('prices')}>Route Prices</button>
+        <button className={page === 'hello' ? 'nav-active' : ''} onClick={() => setPage('hello')}>Hello</button>
       </div>
     </nav>
   );
@@ -33,7 +36,7 @@ function Home() {
   const [form, setForm] = useState({ name: '', email: '', phone: '' });
 
   useEffect(() => {
-    fetch(`${API_BASE}/prices`)
+    fetch(`${BACKEND_BASE_URL}/prices`)
       .then(res => res.json())
       .then(data => setRoutes(data))
       .catch(() => setError('Failed to load routes.'));
@@ -46,7 +49,7 @@ function Home() {
     if (kickoff && destination) {
       setLoading(true);
       setError('');
-      fetch(`${API_BASE}/prices/search?kickoffAddress=${encodeURIComponent(kickoff)}&destination=${encodeURIComponent(destination)}`)
+      fetch(`${BACKEND_BASE_URL}/prices/search?kickoffAddress=${encodeURIComponent(kickoff)}&destination=${encodeURIComponent(destination)}`)
         .then(res => res.json())
         .then(data => {
           setPrice(data);
@@ -78,7 +81,7 @@ function Home() {
     setBookingSuccess('');
     setBookingError('');
     try {
-      const res = await fetch(`${API_BASE}/tickets`, {
+      const res = await fetch(`${BACKEND_BASE_URL}/tickets`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -199,50 +202,61 @@ function Tickets() {
   const [deleting, setDeleting] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
 
+  // Create API instance
+  const api = new FlightTicketControllerApi(
+    new Configuration({ basePath: BACKEND_BASE_URL })
+  );
+
   const fetchTickets = () => {
     setLoading(true);
-    fetch(`${API_BASE}/tickets`)
-      .then(res => res.json())
-      .then(setTickets)
-      .catch(()=>setError('Failed to load tickets'))
-      .finally(()=>setLoading(false));
+    setError('');
+    api.getAllTickets()
+      .then(data => {
+        setTickets(data);
+        setLoading(false);
+      })
+      .catch(() => {
+        setError('Failed to load tickets.');
+        setLoading(false);
+      });
   };
-  useEffect(fetchTickets, []);
+
+  useEffect(() => {
+    fetchTickets();
+  }, []);
 
   const handleSearch = e => {
     e.preventDefault();
     setSearching(true);
     // Convert all search values to lowercase for case-insensitive search
     const params = Object.entries(search)
-      .filter(([k,v])=>v)
-      .map(([k,v])=>`${k}=${encodeURIComponent(v.toLowerCase())}`)
-      .join('&');
-    fetch(`${API_BASE}/tickets/search?${params}`)
-      .then(res => res.json())
+      .filter(([k, v]) => v)
+      .reduce((acc, [k, v]) => ({ ...acc, [k]: v.toLowerCase() }), {});
+    api.searchTickets(params)
       .then(setTickets)
-      .catch(()=>setError('Search failed'))
-      .finally(()=>setSearching(false));
+      .catch(() => setError('Search failed'))
+      .finally(() => setSearching(false));
   };
 
   const handleDelete = id => {
     setDeleting(true);
-    fetch(`${API_BASE}/tickets/${id}`, { method: 'DELETE' })
-      .then(()=>fetchTickets())
-      .catch(()=>setError('Delete failed'))
-      .finally(()=>{ setDeleting(false); setDeleteId(null); });
+    api.deleteTicket(id)
+      .then(() => fetchTickets())
+      .catch(() => setError('Delete failed'))
+      .finally(() => { setDeleting(false); setDeleteId(null); });
   };
 
   return (
     <div className="page-container">
       <h2>All Tickets</h2>
       <form className="search-form" onSubmit={handleSearch}>
-        <input placeholder="Name" value={search.name} onChange={e=>setSearch(s=>({...s,name:e.target.value}))} />
-        <input placeholder="Destination" value={search.destination} onChange={e=>setSearch(s=>({...s,destination:e.target.value}))} />
-        <input placeholder="Pickup Address" value={search.pickupAddress} onChange={e=>setSearch(s=>({...s,pickupAddress:e.target.value}))} />
-        <button className="cta" type="submit" disabled={searching}>{searching ? <span className="spinner"/> : 'Search'}</button>
+        <input placeholder="Name" value={search.name} onChange={e => setSearch(s => ({ ...s, name: e.target.value }))} />
+        <input placeholder="Destination" value={search.destination} onChange={e => setSearch(s => ({ ...s, destination: e.target.value }))} />
+        <input placeholder="Pickup Address" value={search.pickupAddress} onChange={e => setSearch(s => ({ ...s, pickupAddress: e.target.value }))} />
+        <button className="cta" type="submit" disabled={searching}>{searching ? <span className="spinner" /> : 'Search'}</button>
         <button className="cta" type="button" onClick={fetchTickets}>Reset</button>
       </form>
-      {loading ? <div className="spinner"/> : (
+      {loading ? <div className="spinner" /> : (
         <table className="modern-table">
           <thead>
             <tr>
@@ -251,7 +265,7 @@ function Tickets() {
           </thead>
           <tbody>
             {tickets.map(t => (
-              <tr key={t.id} className={selected===t.id ? 'selected-row' : ''}>
+              <tr key={t.id} className={selected === t.id ? 'selected-row' : ''}>
                 <td>{t.id}</td>
                 <td>{t.name}</td>
                 <td>{t.destination}</td>
@@ -259,8 +273,8 @@ function Tickets() {
                 <td>{t.pickupAddress}</td>
                 <td>{t.price ? `₦${t.price}` : '--'}</td>
                 <td>
-                  <button className="cta small" onClick={()=>setSelected(t.id)}>View</button>
-                  <button className="cta small danger" onClick={()=>{setDeleteId(t.id);}}>Delete</button>
+                  <button className="cta small" onClick={() => setSelected(t.id)}>View</button>
+                  <button className="cta small danger" onClick={() => { setDeleteId(t.id); }}>Delete</button>
                 </td>
               </tr>
             ))}
@@ -270,8 +284,8 @@ function Tickets() {
       {deleteId && (
         <div className="modal-overlay"><div className="modal">
           <p>Are you sure you want to delete ticket #{deleteId}?</p>
-          <button className="cta danger" onClick={()=>handleDelete(deleteId)} disabled={deleting}>{deleting ? <span className="spinner"/> : 'Delete'}</button>
-          <button className="modal-close" onClick={()=>setDeleteId(null)} disabled={deleting}>Cancel</button>
+          <button className="cta danger" onClick={() => handleDelete(deleteId)} disabled={deleting}>{deleting ? <span className="spinner" /> : 'Delete'}</button>
+          <button className="modal-close" onClick={() => setDeleteId(null)} disabled={deleting}>Cancel</button>
         </div></div>
       )}
       {selected && (
@@ -279,7 +293,7 @@ function Tickets() {
           <h3>Ticket Details</h3>
           {(() => {
             const t = tickets.find(t => t.id === selected);
-            if (!t) return <div style={{color:'#888'}}>Ticket not found.</div>;
+            if (!t) return <div style={{ color: '#888' }}>Ticket not found.</div>;
             return (
               <div className="ticket-details-modal">
                 <div><b>ID:</b> {t.id ?? '--'}</div>
@@ -293,7 +307,7 @@ function Tickets() {
               </div>
             );
           })()}
-          <button className="modal-close" onClick={()=>setSelected(null)} style={{marginTop:'1.2rem'}}>Close</button>
+          <button className="modal-close" onClick={() => setSelected(null)} style={{ marginTop: '1.2rem' }}>Close</button>
         </div></div>
       )}
       {error && <div className="error">{error}</div>}
@@ -313,41 +327,41 @@ function Prices() {
   const [searchResult, setSearchResult] = useState(null);
   const [searchMessage, setSearchMessage] = useState('');
 
+  const api = new RoutePricingControllerApi(
+    new RoutePricingConfig({ basePath: BACKEND_BASE_URL })
+  );
+
   const fetchPrices = () => {
     setLoading(true);
-    fetch(`${API_BASE}/prices`)
-      .then(res => res.json())
+    api.getAllPrices()
       .then(setPrices)
-      .catch(()=>setError('Failed to load prices'))
-      .finally(()=>setLoading(false));
+      .catch(() => setError('Failed to load prices'))
+      .finally(() => setLoading(false));
   };
   useEffect(fetchPrices, []);
 
   const handleAdd = e => {
     e.preventDefault();
     setAdding(true);
-    fetch(`${API_BASE}/prices`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        kickoffAddress: form.kickoffAddress,
-        destination: form.destination,
-        normalPrice: parseFloat(form.normalPrice),
-        vipPrice: parseFloat(form.vipPrice)
-      })
+    api.addPrice({
+      kickoffAddress: form.kickoffAddress,
+      destination: form.destination,
+      normalPrice: parseFloat(form.normalPrice),
+      vipPrice: parseFloat(form.vipPrice)
     })
-      .then(()=>{ setShowAdd(false); setForm({ kickoffAddress: '', destination: '', normalPrice: '', vipPrice: '' }); fetchPrices(); })
-      .catch(()=>setError('Add failed'))
-      .finally(()=>setAdding(false));
+      .then(() => { setShowAdd(false); setForm({ kickoffAddress: '', destination: '', normalPrice: '', vipPrice: '' }); fetchPrices(); })
+      .catch(() => setError('Add failed'))
+      .finally(() => setAdding(false));
   };
 
   const handleSearch = e => {
     e.preventDefault();
     setSearching(true);
     setSearchMessage('');
-    // Convert search values to lowercase for case-insensitive search
-    fetch(`${API_BASE}/prices/search?kickoffAddress=${encodeURIComponent(search.kickoffAddress.toLowerCase())}&destination=${encodeURIComponent(search.destination.toLowerCase())}`)
-      .then(res=>res.json())
+    api.searchPrice({
+      kickoffAddress: search.kickoffAddress.toLowerCase(),
+      destination: search.destination.toLowerCase()
+    })
       .then(data => {
         setSearchResult(data);
         if (data && (data.normalPrice !== null || data.vipPrice !== null)) {
@@ -356,18 +370,18 @@ function Prices() {
           setSearchMessage('Route not available.');
         }
       })
-      .catch(()=>setError('Search failed'))
-      .finally(()=>setSearching(false));
+      .catch(() => setError('Search failed'))
+      .finally(() => setSearching(false));
   };
 
   return (
     <div className="page-container">
       <h2>All Route Prices</h2>
-      <button className="cta" onClick={()=>setShowAdd(true)}>Add Route Price</button>
+      <button className="cta" onClick={() => setShowAdd(true)}>Add Route Price</button>
       <form className="search-form" onSubmit={handleSearch}>
-        <input placeholder="Kickoff Address" value={search.kickoffAddress} onChange={e=>setSearch(s=>({...s,kickoffAddress:e.target.value}))} />
-        <input placeholder="Destination" value={search.destination} onChange={e=>setSearch(s=>({...s,destination:e.target.value}))} />
-        <button className="cta" type="submit" disabled={searching}>{searching ? <span className="spinner"/> : 'Search'}</button>
+        <input placeholder="Kickoff Address" value={search.kickoffAddress} onChange={e => setSearch(s => ({ ...s, kickoffAddress: e.target.value }))} />
+        <input placeholder="Destination" value={search.destination} onChange={e => setSearch(s => ({ ...s, destination: e.target.value }))} />
+        <button className="cta" type="submit" disabled={searching}>{searching ? <span className="spinner" /> : 'Search'}</button>
       </form>
       {searchResult && (
         <div className="price-card">
@@ -379,7 +393,7 @@ function Prices() {
           {searchResult.message && <div className="no-route">{searchResult.message}</div>}
         </div>
       )}
-      {loading ? <div className="spinner"/> : (
+      {loading ? <div className="spinner" /> : (
         <table className="modern-table">
           <thead>
             <tr>
@@ -411,12 +425,12 @@ function Prices() {
         <div className="modal-overlay"><div className="modal">
           <h3>Add Route Price</h3>
           <form className="booking-form" onSubmit={handleAdd}>
-            <label>Kickoff Address<input value={form.kickoffAddress} onChange={e=>setForm(f=>({...f,kickoffAddress:e.target.value}))} required /></label>
-            <label>Destination<input value={form.destination} onChange={e=>setForm(f=>({...f,destination:e.target.value}))} required /></label>
-            <label>Normal Price<input type="number" min="0" step="0.01" value={form.normalPrice} onChange={e=>setForm(f=>({...f,normalPrice:e.target.value}))} required /></label>
-            <label>VIP Price<input type="number" min="0" step="0.01" value={form.vipPrice} onChange={e=>setForm(f=>({...f,vipPrice:e.target.value}))} required /></label>
-            <button className="cta" type="submit" disabled={adding}>{adding ? <span className="spinner"/> : 'Add'}</button>
-            <button className="modal-close" type="button" onClick={()=>setShowAdd(false)} disabled={adding}>Cancel</button>
+            <label>Kickoff Address<input value={form.kickoffAddress} onChange={e => setForm(f => ({ ...f, kickoffAddress: e.target.value }))} required /></label>
+            <label>Destination<input value={form.destination} onChange={e => setForm(f => ({ ...f, destination: e.target.value }))} required /></label>
+            <label>Normal Price<input type="number" min="0" step="0.01" value={form.normalPrice} onChange={e => setForm(f => ({ ...f, normalPrice: e.target.value }))} required /></label>
+            <label>VIP Price<input type="number" min="0" step="0.01" value={form.vipPrice} onChange={e => setForm(f => ({ ...f, vipPrice: e.target.value }))} required /></label>
+            <button className="cta" type="submit" disabled={adding}>{adding ? <span className="spinner" /> : 'Add'}</button>
+            <button className="modal-close" type="button" onClick={() => setShowAdd(false)} disabled={adding}>Cancel</button>
           </form>
         </div></div>
       )}
@@ -426,44 +440,56 @@ function Prices() {
 }
 
 function Hello() {
-  const [name, setName] = useState('');
-  const [greeting, setGreeting] = useState('');
+  const [messages, setMessages] = useState([]);
+  const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
-  const [msg, setMsg] = useState('');
-  const [postMsg, setPostMsg] = useState('');
   const [postLoading, setPostLoading] = useState(false);
+  const api = new HelloWorldControllerApi(
+    new HelloConfig({ basePath: BACKEND_BASE_URL })
+  );
 
-  const handleGreet = e => {
+  // Fetch greeting as a chat message
+  const handleGreet = async (e) => {
     e.preventDefault();
     setLoading(true);
-    fetch(`/hello?name=${encodeURIComponent(name)}`)
-      .then(res=>res.text())
-      .then(setGreeting)
-      .catch(()=>setGreeting('Failed'))
-      .finally(()=>setLoading(false));
+    try {
+      const response = await api.hello(input);
+      setMessages(msgs => [...msgs, { sender: 'server', text: response }]);
+    } catch {
+      setMessages(msgs => [...msgs, { sender: 'server', text: 'Failed to get greeting.' }]);
+    }
+    setLoading(false);
   };
-  const handlePost = e => {
+
+  // Send a chat message (POST)
+  const handlePost = async (e) => {
     e.preventDefault();
     setPostLoading(true);
-    fetch(`/hello`, { method: 'POST', body: msg })
-      .then(res=>res.text())
-      .then(setPostMsg)
-      .catch(()=>setPostMsg('Failed'))
-      .finally(()=>setPostLoading(false));
+    try {
+      const response = await api.sendGreetings(input);
+      setMessages(msgs => [...msgs, { sender: 'server', text: response }]);
+    } catch {
+      setMessages(msgs => [...msgs, { sender: 'server', text: 'Failed to send greeting.' }]);
+    }
+    setPostLoading(false);
   };
+
   return (
     <div className="page-container">
-      <h2>Hello API Test</h2>
-      <form className="search-form" onSubmit={handleGreet}>
-        <input placeholder="Name" value={name} onChange={e=>setName(e.target.value)} />
-        <button className="cta" type="submit" disabled={loading}>{loading ? <span className="spinner"/> : 'Greet'}</button>
+      <h2>Chatboard</h2>
+      <div className="chatboard">
+        {messages.map((msg, idx) => (
+          <div key={idx} className={msg.sender === 'server' ? 'chat-msg server' : 'chat-msg user'}>{msg.text}</div>
+        ))}
+      </div>
+      <form className="search-form" onSubmit={handleGreet} style={{ marginBottom: 8 }}>
+        <input placeholder="Say hello..." value={input} onChange={e => setInput(e.target.value)} />
+        <button className="cta" type="submit" disabled={loading}>{loading ? <span className="spinner" /> : 'Greet (GET)'}</button>
       </form>
-      {greeting && <div className="success">{greeting}</div>}
       <form className="search-form" onSubmit={handlePost}>
-        <input placeholder="Message" value={msg} onChange={e=>setMsg(e.target.value)} />
-        <button className="cta" type="submit" disabled={postLoading}>{postLoading ? <span className="spinner"/> : 'Send Greeting'}</button>
+        <input placeholder="Send a message..." value={input} onChange={e => setInput(e.target.value)} />
+        <button className="cta" type="submit" disabled={postLoading}>{postLoading ? <span className="spinner" /> : 'Send (POST)'}</button>
       </form>
-      {postMsg && <div className="success">{postMsg}</div>}
     </div>
   );
 }
@@ -473,10 +499,10 @@ export default function App() {
   return (
     <>
       <Navbar page={page} setPage={setPage} />
-      {page==='home' && <Home />}
-      {page==='tickets' && <Tickets />}
-      {page==='prices' && <Prices />}
-      {page==='hello' && <Hello />}
+      {page === 'home' && <Home />}
+      {page === 'tickets' && <Tickets />}
+      {page === 'prices' && <Prices />}
+      {page === 'hello' && <Hello />}
     </>
   );
 }
